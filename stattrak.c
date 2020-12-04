@@ -58,25 +58,19 @@ void loop() {
       HTTPClient http;
       http.begin(apiUrl.c_str());
       // Send HTTP GET request
-      int httpResponseCode = http.GET();
-      String payload = http.getString();
-      const char* conststring = payload.c_str();
-      Serial.println(httpResponseCode);
-      if (httpResponseCode > 0) {
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
+      if (http.GET() > 0) {
         const size_t capacity = JSON_ARRAY_SIZE(85) + JSON_ARRAY_SIZE(170) + JSON_OBJECT_SIZE(1) + 255*JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 10150;
         DynamicJsonDocument doc(capacity);
-        DeserializationError err = deserializeJson(doc, conststring);
+        DeserializationError err = deserializeJson(doc, http.getString().c_str());
         if (err) {
           Serial.print("Error: ");
           Serial.println(err.c_str());
           http.end();
           return;
         }
+        // TODO - I think the following variables are unnecessary
         JsonObject playerstats = doc["playerstats"];
         JsonArray playerstats_stats = playerstats["stats"];
-        const char* playerstats_steamID = playerstats["steamID"];
         int kills = playerstats_stats[0]["value"];
         Serial.println(kills % 10);
         Serial.println((kills % 100) / 10);
